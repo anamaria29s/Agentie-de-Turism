@@ -1,0 +1,883 @@
+create table Clienti(
+    client_id number(6) constraint pk_client primary key,
+    nume varchar2(50)constraint nume_null not null,
+    prenume varchar2(50)constraint prenume_null not null,
+    adresa varchar2(100)constraint adresa_null not null,
+    email varchar2(100)constraint email_null not null,
+    telefon number(11) constraint telefon_null not null
+);
+
+create table Joburi(
+    job_id number(6) constraint pk_job primary key,
+    salariu number(10) constraint salariu_null not null,
+    functie varchar2(50) constraint functie_null not null
+);
+
+create table Angajati(
+    angajat_id number(6) constraint pk_angajat primary key,
+    job_id number(6) not null,
+    nume varchar2(50) constraint nume_ang_null not null,
+    prenume varchar2(50) constraint prenume_ang_null not null,
+    adresa varchar2(100) constraint adresa_ang_null not null,
+    email varchar2(100) constraint email_ang_null not null,
+    telefon number(11) constraint telefon_ang_null not null,
+    constraint fk_job foreign key (job_id) references JOBURI (job_id)
+);
+
+create table Destinatii(
+    destinatie_id number(6) constraint pk_destinatie primary key,
+    tara varchar2(50) constraint tara_null not null,
+    oras varchar2(50) constraint oras_null not null
+);
+
+create table Pachete_Turistice(
+    pachet_id number(6) constraint pk_pachet primary key,
+    destinatie_id number(6) not null,
+    nume varchar2(50) constraint nume_pachet_null not null,
+    descriere varchar2(255) constraint descriere_pachet_null not null,
+    pret number(10) constraint pret_pachet_null not null,
+    constraint fk_destinatie foreign key (destinatie_id) references DESTINATII(destinatie_id)
+);
+
+create table Rezervari(
+     rezervare_id number(6) constraint pk_rezervare primary key,
+     client_id number(6) not null,
+     pachet_id number(6) not null,
+     data_rezervare date not null,
+     data_vacanta_inceput date not null,
+     data_vacanta_sfarsit date not null,
+     nr_pers number(3) constraint nr_pers_null not null,
+     constraint fk_client foreign key (client_id) references CLIENTI(client_id),
+     constraint fk_pachet foreign key (pachet_id) references PACHETE_TURISTICE(pachet_id)
+);
+
+create table Angajat_Rezervare (
+    angrezerv_id number(6) constraint pk_angrez primary key,
+    rezervare_id number(6) not null,
+    angajat_id number(6) not null,
+    constraint fk_angajat foreign key (rezervare_id) references REZERVARI(rezervare_id),
+    constraint fk_rezervare foreign key (angajat_id) references ANGAJATI(angajat_id)
+);
+
+create table Recenzii(
+    recenzie_id number(6) constraint pk_recenzie primary key,
+    client_id number(6) not null,
+    rezervare_id number(6) not null,
+    data_recenzie date constraint data_rec_null not null,
+    descriere varchar2(255) constraint descriere_recenz_null not null,
+    constraint fk_client_rec foreign key (client_id) references CLIENTI(client_id),
+    constraint fk_rezervare_rec foreign key (rezervare_id) references REZERVARI(rezervare_id)
+);
+
+create table Vanzari(
+    vanzare_id number(6) constraint pk_vanzare primary key,
+    rezervare_id number(6) not null,
+    comision number(10) constraint comision_null not null,
+    constraint fk_rezervare_v foreign key (rezervare_id) references REZERVARI(rezervare_id)
+);
+
+create table Plati(
+    plata_id number(6) constraint pk_plata primary key,
+    rezervare_id number(6) not null,
+    data_plata date not null,
+    suma number(10) constraint suma_null not null,
+    constraint fk_rezervare_plata foreign key (rezervare_id) references REZERVARI(rezervare_id)
+);
+
+create table Oferte_Speciale(
+     oferta_id number(6) constraint pk_oferta primary key,
+     pachet_id number(6) not null,
+     data_inceput date not null,
+     data_sfarsit date not null,
+     descriere varchar2(255) constraint descriere_oferta_null not null,
+     reducere number(6) constraint reducere_null not null,
+     pret number(10) constraint pret_oferta_null not null,
+     constraint fk_pachet_of foreign key (pachet_id) references PACHETE_TURISTICE(pachet_id)
+);
+
+create table Excursii(
+    excursie_id number(6) constraint pk_excursie primary key,
+    destinatie_id number(6) not null,
+    nume varchar2(50) constraint nume_excursie_null not null,
+    descriere varchar2(255) constraint descriere_excursie_null not null,
+    durata number(10) constraint durata_excursie_null not null,
+    pret number(10) constraint pret_excursie_null not null,
+    constraint fk_destinatie_exc foreign key (destinatie_id) references DESTINATII(destinatie_id)
+);
+
+
+
+create table Transport(
+    transport_id number(6) constraint pk_transport primary key,
+    destinatie_id number(6) not null,
+    companie varchar2(255) constraint companie_transp_null not null,
+    tip_transport varchar2(20) default 'basic' check ( lower(tip_transport) in ('aerian','feroviar', 'naval', 'rutier')),
+    pret number(10) constraint pret_transp_null not null,
+    constraint fk_destinatie_transp foreign key (destinatie_id) references DESTINATII(destinatie_id)
+);
+
+create table Hoteluri(
+    hotel_id number(6) constraint pk_hotel primary key,
+    destinatie_id number(6) not null,
+    nume varchar2(50)constraint nume_hotel_null not null,
+    adresa varchar2(100)constraint adresa_hotel_null not null,
+    email varchar2(100)constraint email_hotel_null not null,
+    telefon number(11) constraint telefon_hotel_null not null,
+    nr_camere number(10) constraint nr_camere_null not null,
+    pret_camera number(10) constraint pret_camera_null not null,
+    tip_camera varchar2(20) default 'basic' check ( lower(tip_camera) in ('single','double', 'triple', 'suita')),
+    constraint fk_destinatie_h foreign key (destinatie_id) references DESTINATII(destinatie_id)
+);
+
+
+
+create sequence incrementare_clienti
+start with 100
+increment by 1
+minvalue 0
+maxvalue 10000
+nocycle;
+
+
+insert into Clienti (client_id, nume, prenume, adresa, email, telefon) values (incrementare_clienti.nextval, 'Popescu', 'Adrian', 'Strada Zambilei nr. 8', 'padrian@gmail.com', 0723291993);
+insert into Clienti (client_id, nume, prenume, adresa, email, telefon) values (incrementare_clienti.nextval, 'Ionescu', 'Maria', 'Strada Crizantemelor nr. 15', 'mionescu@gmail.com', 0741122334);
+insert into Clienti (client_id, nume, prenume, adresa, email, telefon) values (incrementare_clienti.nextval, 'Radu', 'Alexandru', 'Bulevardul Libert??ii nr. 27', 'aradu@yahoo.com', 0754455667);
+insert into Clienti (client_id, nume, prenume, adresa, email, telefon) values (incrementare_clienti.nextval, 'Dumitrescu', 'Elena', 'Aleea Trandafirilor nr. 12', 'edumitrescu@gmail.com', 0729876543);
+insert into Clienti (client_id, nume, prenume, adresa, email, telefon) values (incrementare_clienti.nextval, 'Georgescu', 'Mihai', 'Strada Mihai Viteazu nr. 3', 'mgeorgescu@gmail.com', 0733654987);
+insert into Clienti (client_id, nume, prenume, adresa, email, telefon) values (incrementare_clienti.nextval, 'Stanescu', 'Andreea', 'Bulevardul Unirii nr. 10', 'astanescu5@yahoo.com', 0746549872);
+insert into Clienti (client_id, nume, prenume, adresa, email, telefon) values (incrementare_clienti.nextval, 'Mihai', 'Cristina', 'Strada Florilor nr. 6', 'cmihai@gmail.com', 0723214567);
+insert into Clienti (client_id, nume, prenume, adresa, email, telefon) values (incrementare_clienti.nextval, 'Popa', 'Ionut', 'Aleea Salcamilor nr. 9', 'ipopa88@gmail.com', 0727654321);
+insert into Clienti (client_id, nume, prenume, adresa, email, telefon) values (incrementare_clienti.nextval, 'Constantin', 'Raluca', 'Strada Plopilor nr. 22', 'rconstantin@yahoo.com', 0721987654);
+insert into Clienti (client_id, nume, prenume, adresa, email, telefon) values (incrementare_clienti.nextval, 'Gheorghe', 'Marian', 'Bulevardul Victoriei nr. 18', 'm27gheorghe@gmail.com', 0755432198);
+
+
+insert into Joburi (job_id, functie, salariu) values (20, 'Agent de turism', 4000);
+insert into Joburi (job_id, functie, salariu) values (21, 'Manager de vanzari', 4800);
+insert into Joburi (job_id, functie, salariu) values (22, 'Consultant de calatorie', 2800);
+insert into Joburi (job_id, functie, salariu) values (23, 'Agent de vanzari', 3400);
+insert into Joburi (job_id, functie, salariu) values (24, 'Coordonator de evenimente', 4200);
+insert into Joburi (job_id, functie, salariu) values (25, 'Ghid turistic', 3000);
+
+
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1000, 21, 'Mihalcea', 'Florentina', 'Strada Principala nr. 10', 'floriii@gmail.com', 0721234567);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1001, 20, 'Grinda', 'Valentina', 'Bulevardul Ciresii nr. 20', 'valigrinda9@yahoo.com', 0732345678);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1002, 20, 'Radu', 'Alexandru', 'Aleea Florilor nr. 5', 'aradu@gmail.com', 0743456789);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1003, 23, 'Dumitras', 'Andreea', 'Strada Mihai Viteazu nr. 15', 'deadumitras6@hotmail.com', 0754567890);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1004, 24, 'Cristea', 'George', 'Bulevardul Unirii nr. 12', 'georgecris@gmail.com', 0755678901);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1005, 25, 'Botea', 'Stamate', 'Strada Plopilor nr. 8', 'stamateb@yahoo.com', 0726789012);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1006, 22, 'Mihai', 'Alexandru', 'Aleea Rozelor nr. 3', 'mihai21alex@gmail.com', 0747890123);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1007, 20, 'Mircea', 'Adrian', 'Bulevardul Victoriei nr. 18', 'adi22m@hotmail.com', 0738901234);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1008, 20, 'Coriandru', 'Ana', 'Strada Garoafelor nr. 25', 'ana3@yahoo.com', 0729012345);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1009, 25, 'Vasilica', 'Razvan', 'Aleea Salcamilor nr. 30', 'mgheorghe@gmail.com', 0740123456);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1010, 22, 'Lopita', 'Catalina', 'Strada Independentei nr. 9', 'cata17@gmail.com', 0749722342);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1011, 23, 'Verde', 'Alin', 'Strada Frunzei nr. 29', 'verdealin8@gmail.com', 0738866213);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1012, 24, 'Andrei', 'Iulian', 'Aleea Norocului nr. 2', 'iuli26iuli@yahoo.com', 0756218339);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1013, 21, 'Hrisca', 'Teodora', 'Bulevardul Florilor nr. 19', 'teo56h@gmail.com', 0747219928);
+insert into Angajati (angajat_id, job_id, nume, prenume, adresa, email, telefon) values (1014, 25, 'Florica', 'Daria', 'Strada Democratiei nr. 6', 'dariaflori@gmail.com', 0740123456);
+
+
+insert into Destinatii (destinatie_id, tara, oras) values (2050, 'Italia', 'Venetia');
+insert into Destinatii (destinatie_id, tara, oras) values (2051, 'Italia', 'Florenta');
+insert into Destinatii (destinatie_id, tara, oras) values (2052, 'Italia', 'Roma');
+insert into Destinatii (destinatie_id, tara, oras) values (2053, 'Belgia', 'Bruxelles');
+insert into Destinatii (destinatie_id, tara, oras) values (2054, 'Germania', 'Berlin');
+insert into Destinatii (destinatie_id, tara, oras) values (2055, 'Germania', 'Munchen');
+insert into Destinatii (destinatie_id, tara, oras) values (2056, 'Germania', 'Frankfurt');
+insert into Destinatii (destinatie_id, tara, oras) values (2057, 'Olanda', 'Amsterdam');
+insert into Destinatii (destinatie_id, tara, oras) values (2058, 'Spania', 'Barcelona');
+insert into Destinatii (destinatie_id, tara, oras) values (2059, 'Spania', 'Madrid');
+insert into Destinatii (destinatie_id, tara, oras) values (2060, 'Spania', 'Mallorca');
+insert into Destinatii (destinatie_id, tara, oras) values (2061, 'UK', 'Londra');
+insert into Destinatii (destinatie_id, tara, oras) values (2062, 'UK', 'Edinburgh');
+insert into Destinatii (destinatie_id, tara, oras) values (2063, 'Portugalia', 'Lisabona');
+insert into Destinatii (destinatie_id, tara, oras) values (2064, 'Austria', 'Viena');
+insert into Destinatii (destinatie_id, tara, oras) values (2065, 'Austria', 'Salzburg');
+insert into Destinatii (destinatie_id, tara, oras) values (2066, 'Ungaria', 'Budapesta');
+insert into Destinatii (destinatie_id, tara, oras) values (2067, 'Croatia', 'Praga');
+insert into Destinatii (destinatie_id, tara, oras) values (2068, 'Franta', 'Paris');
+insert into Destinatii (destinatie_id, tara, oras) values (2069, 'Franta', 'Marsillia');
+insert into Destinatii (destinatie_id, tara, oras) values (2070, 'Polonia', 'Varsovia');
+insert into Destinatii (destinatie_id, tara, oras) values (2071, 'Turcia', 'Istanbul');
+insert into Destinatii (destinatie_id, tara, oras) values (2072, 'Grecia', 'Atena');
+insert into Destinatii (destinatie_id, tara, oras) values (2073, 'Grecia', 'Corfu');
+insert into Destinatii (destinatie_id, tara, oras) values (2074, 'Suedia', 'Stockholm');
+
+
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (1, 2065, 'Pachet Munte', 'Explorarea naturii într-o atmosfer? m?iastr? de munte.', 1800);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (2, 2073, 'Pachet Plaj?', 'Relaxeaz?-te pe cele mai frumoase plaje din lume!', 3200);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (3, 2058, 'Pachet Plaj?', 'Relaxeaz?-te pe cele mai frumoase plaje din lume!', 3400);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (4, 2063, 'Pachet Plaj?', 'Relaxeaz?-te pe cele mai frumoase plaje din lume!', 3200);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (5, 2070, 'Pachet Cultural', 'Descoper? cultura ?i istoria bogat? a unei destina?ii fascinante.', 2100);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (6, 2068, 'Pachet Cultural', 'Descoper? cultura ?i istoria bogat? a unei destina?ii fascinante.', 2300);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (7, 2053, 'Pachet Cultural', 'Descoper? cultura ?i istoria bogat? a unei destina?ii fascinante.', 2200);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (8, 2054, 'Pachet Cultural', 'Descoper? cultura ?i istoria bogat? a unei destina?ii fascinante.', 2100);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (9, 2056, 'Pachet Aventur?', 'Înfrunt? provoc?ri ?i adrenalina în cele mai spectaculoase aventuri.', 2900);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (10, 2065, 'Pachet Aventur?', 'Înfrunt? provoc?ri ?i adrenalina în cele mai spectaculoase aventuri.', 3000);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (11, 2063, 'Pachet Wellness', 'Bucur?-te de relaxare ?i îngrijirea de sine în cele mai bune spa-uri.', 1800);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (12, 2072, 'Pachet C?l?torie în timp', 'Reîntoarce-te în trecut ?i descoper? misterele istoriei.', 2300);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (13, 2062, 'Pachet C?l?torie în timp', 'Reîntoarce-te în trecut ?i descoper? misterele istoriei.', 2400);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (14, 2071, 'Pachet C?l?torie în timp', 'Reîntoarce-te în trecut ?i descoper? misterele istoriei.', 2500);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (15, 2066, 'Pachet C?l?torie în timp', 'Reîntoarce-te în trecut ?i descoper? misterele istoriei.', 2400);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (16, 2061, 'Pachet City Break', 'Exploreaz? metropole vibrante ?i atrac?ii urbane captivante.', 2400);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (17, 2057, 'Pachet City Break', 'Exploreaz? metropole vibrante ?i atrac?ii urbane captivante.', 2300);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (18, 2068, 'Pachet City Break', 'Exploreaz? metropole vibrante ?i atrac?ii urbane captivante.', 2400);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (19, 2067, 'Pachet City Break', 'Exploreaz? metropole vibrante ?i atrac?ii urbane captivante.', 2000);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (20, 2050, 'Pachet City Break', 'Exploreaz? metropole vibrante ?i atrac?ii urbane captivante.', 2300);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (21, 2052, 'Pachet City Break', 'Exploreaz? metropole vibrante ?i atrac?ii urbane captivante.', 2100);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (22, 2053, 'Pachet City Break', 'Exploreaz? metropole vibrante ?i atrac?ii urbane captivante.', 2200);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (23, 2063, 'Pachet City Break', 'Exploreaz? metropole vibrante ?i atrac?ii urbane captivante.', 2300);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (24, 2055, 'Pachet City Break', 'Exploreaz? metropole vibrante ?i atrac?ii urbane captivante.', 2200);
+insert into Pachete_Turistice (pachet_id, destinatie_id, nume, descriere, pret) values (25, 2074, 'Pachet City Break', 'Exploreaz? metropole vibrante ?i atrac?ii urbane captivante.', 2400);
+
+
+insert into Rezervari (rezervare_id, client_id, pachet_id, data_rezervare, data_vacanta_inceput, data_vacanta_sfarsit, nr_pers) values (70, 101, 1, DATE '2023-01-01', DATE '2023-06-15', DATE '2023-06-22', 2);
+insert into Rezervari (rezervare_id, client_id, pachet_id, data_rezervare, data_vacanta_inceput, data_vacanta_sfarsit, nr_pers) values (71, 102, 4, DATE '2023-02-03', DATE '2023-07-10', DATE '2022-07-17', 1);
+insert into Rezervari (rezervare_id, client_id, pachet_id, data_rezervare, data_vacanta_inceput, data_vacanta_sfarsit, nr_pers) values (72, 103, 25, DATE '2023-03-05', DATE '2023-08-20', DATE '2022-08-27', 3);
+insert into Rezervari (rezervare_id, client_id, pachet_id, data_rezervare, data_vacanta_inceput, data_vacanta_sfarsit, nr_pers) values (73, 104, 17, DATE '2023-04-07', DATE '2023-09-05', DATE '2022-09-12', 4);
+insert into Rezervari (rezervare_id, client_id, pachet_id, data_rezervare, data_vacanta_inceput, data_vacanta_sfarsit, nr_pers) values (74, 105, 2, DATE '2023-05-09', DATE '2023-10-01', DATE '2023-10-08', 3);
+insert into Rezervari (rezervare_id, client_id, pachet_id, data_rezervare, data_vacanta_inceput, data_vacanta_sfarsit, nr_pers) values (75, 106, 9, DATE '2023-06-11', DATE '2023-11-15', DATE '2023-11-22', 2);
+insert into Rezervari (rezervare_id, client_id, pachet_id, data_rezervare, data_vacanta_inceput, data_vacanta_sfarsit, nr_pers) values (76, 107, 15, DATE '2023-07-13', DATE '2023-12-10', DATE '2023-12-17', 1);
+insert into Rezervari (rezervare_id, client_id, pachet_id, data_rezervare, data_vacanta_inceput, data_vacanta_sfarsit, nr_pers) values (77, 108, 19, DATE '2023-08-15', DATE '2024-01-05', DATE '2024-01-12', 3);
+
+
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (400, 70, 1001),
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (401, 70, 1005);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (402, 70, 1010);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (403, 71, 1007);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (404, 71, 1005);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (405, 72, 1002);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (406, 72, 1006);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (407, 73, 1008);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (408, 73, 1010);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (409, 74, 1001);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (410, 74, 1014);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (411, 75, 1007);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (412, 75, 1009);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (413, 76, 1002);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (414, 76, 1006);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (415, 77, 1001);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (416, 78, 1008);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (417, 78, 1014);
+insert into Angajat_Rezervare (angrezerv_id, rezervare_id, angajat_id) values (418, 78, 1010);
+
+
+insert into Recenzii (recenzie_id, client_id, rezervare_id, data_recenzie, descriere) values (80, 101, 70, date '2023-07-01', 'Vacanta excelenta! Servicii impecabile si destinatie minunata.');
+insert into Recenzii (recenzie_id, client_id, rezervare_id, data_recenzie, descriere) values (81, 102, 72, date '2023-08-30', 'Am avut parte de o experienta de neuitat. Recomand cu încredere!');
+insert into Recenzii (recenzie_id, client_id, rezervare_id, data_recenzie, descriere) values (82, 103, 73, date '2023-10-05', 'Personal amabil si profesionist. Destinatie perfecta pentru relaxare.');
+insert into Recenzii (recenzie_id, client_id, rezervare_id, data_recenzie, descriere) values (83, 106, 74, date '2023-04-07', 'Totul a fost pe placul nostru. Nu puteam cere mai mult.');
+insert into Recenzii (recenzie_id, client_id, rezervare_id, data_recenzie, descriere) values (84, 108, 75, date '2023-05-09', 'Recomand cu caldura aceasta agentie. Servicii de top si pachete variate.');
+insert into Recenzii (recenzie_id, client_id, rezervare_id, data_recenzie, descriere) values (85, 109, 76, date '2023-12-11', 'Vacanta a fost pe gustul nostru. Am avut parte de aventuri si distractie.');
+
+
+insert into Vanzari (vanzare_id, rezervare_id, comision) values (90, 70, 20);
+insert into Vanzari (vanzare_id, rezervare_id, comision) values (91, 71, 18);
+insert into Vanzari (vanzare_id, rezervare_id, comision) values (92, 72, 10);
+insert into Vanzari (vanzare_id, rezervare_id, comision) values (93, 73, 28);
+insert into Vanzari (vanzare_id, rezervare_id, comision) values (94, 74, 19);
+insert into Vanzari (vanzare_id, rezervare_id, comision) values (95, 75, 25);
+insert into Vanzari (vanzare_id, rezervare_id, comision) values (96, 76, 28);
+insert into Vanzari (vanzare_id, rezervare_id, comision) values (97, 77, 27);
+insert into Vanzari (vanzare_id, rezervare_id, comision) values (98, 78, 22);
+ 
+
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (110, 70, date '2023-01-01', 2300);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (111, 71, date '2023-02-03', 1500);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (112, 71, date '2023-04-05', 2400);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (113, 72, date '2023-03-05', 2600);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (114, 73, date '2023-04-07', 1250);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (115, 73, date '2023-06-11', 1200);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (116, 74, date '2023-05-09', 3000);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (117, 75, date '2023-06-11', 1200);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (118, 75, date '2023-07-20', 1200);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (119, 75, date '2023-08-19', 1000);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (120, 76, date '2023-07-13', 2600);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (121, 77, date '2023-08-15', 2350);
+insert into Plati (plata_id, rezervare_id, data_plata, suma) values (122, 78, date '2023-09-17', 2300);
+
+
+insert into Oferte_Speciale (oferta_id, pachet_id, data_inceput, data_sfarsit, descriere, reducere, pret) values (200, 1, date '2023-01-01', date '2023-01-15', 'Reducere de iarn?', 10, 2250);
+insert into Oferte_Speciale (oferta_id, pachet_id, data_inceput, data_sfarsit, descriere, reducere, pret) values (201, 7, date '2023-03-20', date '2023-04-15', 'Promo?ie de Pa?te', 20, 1680);
+insert into Oferte_Speciale (oferta_id, pachet_id, data_inceput, data_sfarsit, descriere, reducere, pret) values (202, 3, date '2023-06-15', date '2023-07-15', 'Promo?ie de var?', 18, 2620);
+insert into Oferte_Speciale (oferta_id, pachet_id, data_inceput, data_sfarsit, descriere, reducere, pret) values (203, 9, date '2023-08-01', date '2023-08-31', 'Ofert? final de var?', 15, 1530);
+insert into Oferte_Speciale (oferta_id, pachet_id, data_inceput, data_sfarsit, descriere, reducere, pret) values (204, 22, date '2023-10-15', date '2023-11-15', 'Reducere de toamn?', 12, 2240);
+insert into Oferte_Speciale (oferta_id, pachet_id, data_inceput, data_sfarsit, descriere, reducere, pret) values (205, 14, date '2023-11-20', date '2023-12-15', 'Ofert? Cr?ciun', 15, 2040);
+insert into Oferte_Speciale (oferta_id, pachet_id, data_inceput, data_sfarsit, descriere, reducere, pret) values (206, 25, date '2023-12-20', date '2024-01-10', 'Promo?ie Revelion', 20, 2800);
+
+
+insert into Excursii (excursie_id, destinatie_id, nume, descriere, durata, pret) values (300, 2065, 'Excursie în Salzburg', 'Descoper? frumuse?ea ora?ului Salzburg ?i a muzeelor sale', 2, 600);
+insert into Excursii (excursie_id, destinatie_id, nume, descriere, durata, pret) values (301, 2068, 'Excursie la Disneyland', 'Redescoper? frumuse?ea copilariei', 3, 1800);
+insert into Excursii (excursie_id, destinatie_id, nume, descriere, durata, pret) values (302, 2061, 'Excursie în Londra', 'Descoper? frumuse?ea Londrei ?i locurile sale istorice', 2, 1100);
+insert into Excursii (excursie_id, destinatie_id, nume, descriere, durata, pret) values (303, 2072, 'Excursie în Atena', 'Exploreaz? cultura ?i istoria ora?ului Atena', 3, 1200);
+insert into Excursii (excursie_id, destinatie_id, nume, descriere, durata, pret) values (304, 2070, 'Excursie în Varsovia', 'Descoper? frumuse?ea ora?ului Varsovia ?i atrac?iile sale', 2, 700);
+insert into Excursii (excursie_id, destinatie_id, nume, descriere, durata, pret) values (305, 2067, 'Excursie la Praga', 'Exploreaz? frumuse?ea ora?ului Praga ?i castelele sale', 1, 450);
+
+
+insert into Transport (transport_id, destinatie_id, companie, tip_transport, pret) values (500, 2051, 'BlueAir', 'aerian', 500);
+insert into Transport (transport_id, destinatie_id, companie, tip_transport, pret) values (501, 2062, 'Eurostar', 'feroviar', 200);
+insert into Transport (transport_id, destinatie_id, companie, tip_transport, pret) values (502, 2070, 'FerryLine', 'naval', 300);
+insert into Transport (transport_id, destinatie_id, companie, tip_transport, pret) values (503, 2073, 'Eurolines', 'rutier', 150);
+insert into Transport (transport_id, destinatie_id, companie, tip_transport, pret) values (504, 2068, 'Lufthansa', 'aerian', 400);
+insert into Transport (transport_id, destinatie_id, companie, tip_transport, pret) values (505, 2062, 'AirFrance', 'aerian', 600);
+insert into Transport (transport_id, destinatie_id, companie, tip_transport, pret) values (506, 2058, 'ÖBB', 'feroviar', 250);
+insert into Transport (transport_id, destinatie_id, companie, tip_transport, pret) values (507, 2054, 'MSC Cruises', 'naval', 450);
+insert into Transport (transport_id, destinatie_id, companie, tip_transport, pret) values (508, 2069, 'Europcar', 'rutier', 180);
+insert into Transport (transport_id, destinatie_id, companie, tip_transport, pret) values (509, 2064, 'Ryanair', 'aerian', 350);
+
+
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5000, 2065, 'Hotel Mozart', 'Strada Salzburg nr. 123, Salzburg', 'info@hotelmozart.com', 1234567890, 50, 200, 'single');
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5001, 2068, 'Hotel Parisian', 'Aleea Eiffel nr. 456, Paris', 'info@hotelparisian.com', 9876543210, 100, 300, 'double');
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5002, 2061, 'Hotel London Palace', 'Bulevardul Buckingham nr. 789, Londra', 'info@hotellondonpalace.com', 4567890123, 80, 250, 'single');
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5003, 2072, 'Hotel Acropolis View', 'Strada Parthenon nr. 234, Atena', 'info@hotelacropolisview.com', 7890123456, 120, 350, 'triple');
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5004, 2070, 'Hotel Warsaw Plaza', 'Pia?a Varsovia nr. 567, Varsovia', 'info@hotelwarsawplaza.com', 2109876543, 70, 220, 'double');
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5005, 2067, 'Hotel Prague Castle', 'Strada Hradcany nr. 890, Praga', 'info@hotelpraguecastle.com', 5432109876, 90, 280, 'single');
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5006, 2065, 'Hotel Salzburg City', 'Strada Mirabell nr. 321, Salzburg', 'info@hotelsalzburgcity.com', 6789012345, 60, 180, 'double');
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5007, 2068, 'Hotel Louvre', 'Bulevardul Louvre nr. 654, Paris', 'info@hotellouvre.com', 4321098765, 110, 320, 'suita');
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5008, 2066, 'Hotel Budapest Center', 'Strada Budapesta nr. 123, Budapesta', 'info@hotelbudapestcenter.com', 6789012345, 60, 180, 'double');
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5009, 2074, 'Hotel Stockholm Harbor', 'Strada Stockholm nr. 456, Stockholm', 'info@hotelstockholmharbor.com', 4321098765, 110, 320, 'suita');
+insert into Hoteluri (hotel_id, destinatie_id, nume, adresa, email, telefon, nr_camere, pret_camera, tip_camera) values (5010, 2050, 'Hotel Venice Grand', 'Strada Venetia nr. 789, Vene?ia', 'info@hotelvenicegrand.com', 9012345678, 100, 300, 'double');
+
+
+--PROIECT SGBD
+--ex6
+-- Afisarea pentru un anumit tip de transport a tarilor in care este valabil, al id-ului si al numarului de orase pentru fiecare tara
+CREATE OR REPLACE PROCEDURE TipTransport (
+    p_tip_transport IN Transport.tip_transport%TYPE
+) AS
+    -- Tabel indexat pentru stocarea id-urilor transporturilor
+    TYPE transport_id_table IS TABLE OF Transport.transport_id%TYPE INDEX BY PLS_INTEGER;
+    t_id transport_id_table;
+
+    -- Tabel imbricat pentru stocarea tarilor
+    TYPE destinatii_table IS TABLE OF Destinatii.tara%TYPE;
+    t_destinatii destinatii_table;
+
+    -- Varray pentru stocarea numarului de orase
+    TYPE numar_orase_varray IS VARRAY(10) OF NUMBER;
+    numar_orase_varray_var numar_orase_varray := numar_orase_varray();
+
+BEGIN
+    -- Ob?inere id-urile transporturilor de tipul specificat
+    SELECT transport_id
+    BULK COLLECT INTO t_id
+    FROM Transport
+    WHERE tip_transport = p_tip_transport;
+
+    -- Pentru fiecare transport, ob?inere tarile în care este valabil 
+    FOR i IN t_id.FIRST..t_id.LAST LOOP
+        SELECT DISTINCT d.tara, COUNT(d.oras)
+        BULK COLLECT INTO t_destinatii, numar_orase_varray_var
+        FROM Destinatii d
+        JOIN Transport t ON d.destinatie_id = t.destinatie_id
+        WHERE t.transport_id = t_id(i)
+        GROUP BY d.tara;
+
+        DBMS_OUTPUT.PUT_LINE('Transport ID: ' || t_id(i) || ', Tip transport: ' || p_tip_transport);
+        
+        FOR j IN t_destinatii.FIRST..t_destinatii.LAST LOOP
+            DBMS_OUTPUT.PUT_LINE('Tara: ' || t_destinatii(j) || ', Numar orase: ' || numar_orase_varray_var(j));
+        END LOOP;
+    END LOOP;
+
+END TipTransport;
+/
+
+set serveroutput on;
+BEGIN
+    TipTransport(p_tip_transport => 'aerian');
+END;
+/
+
+
+--ex7
+-- Un cursor care sa adune informatii despre excursii, inclusiv durata si pretul acestora
+CREATE OR REPLACE PACKAGE ExcursiiPackage AS
+
+    -- Declaratie Cursor
+    CURSOR c_Destinatii IS
+        SELECT destinatie_id, tara, oras
+        FROM Destinatii;
+
+    -- Cursor parametrizat dependent de celalalt cursor
+    CURSOR c_Excursii(p_DestinatieID_param Excursii.destinatie_id%TYPE) IS
+        SELECT excursie_id, destinatie_id, nume, descriere, durata, pret
+        FROM Excursii
+        WHERE destinatie_id = p_DestinatieID_param;
+
+    PROCEDURE AfiseazaExcursii;
+
+END ExcursiiPackage;
+/
+
+CREATE OR REPLACE PACKAGE BODY ExcursiiPackage AS
+
+    -- Subprogram stocat independent
+    PROCEDURE AfiseazaExcursii IS
+        -- Variabile pentru pastrarea informatiilor despre destinatii
+        v_DestinatieID Destinatii.destinatie_id%TYPE;
+        v_Tara Destinatii.tara%TYPE;
+        v_Oras Destinatii.oras%TYPE;
+
+        -- Variabile pentru pastrarea informatiilor despre excursii
+        v_ExcursieID Excursii.excursie_id%TYPE;
+        v_Nume Excursii.nume%TYPE;
+        v_Descriere Excursii.descriere%TYPE;
+        v_Durata Excursii.durata%TYPE;
+        v_Pret Excursii.pret%TYPE;
+
+    BEGIN
+        -- Deschiderea primului Cursor
+        OPEN c_Destinatii;
+
+        -- Iterarea prin rezultatele primului Cursor
+        LOOP
+            -- Extrage datele in variabile
+            FETCH c_Destinatii INTO v_DestinatieID, v_Tara, v_Oras;
+
+            EXIT WHEN c_Destinatii%NOTFOUND;
+
+            DBMS_OUTPUT.PUT_LINE('Destinatie ID: ' || v_DestinatieID);
+            DBMS_OUTPUT.PUT_LINE('Tara: ' || v_Tara);
+            DBMS_OUTPUT.PUT_LINE('Oras: ' || v_Oras);
+            DBMS_OUTPUT.PUT_LINE('-----------------------');
+            -- Deschide cursorul parametrizat
+            OPEN c_Excursii(v_DestinatieID);
+
+            -- Itereaza prin rezultatele cursorului parametrizat
+            LOOP
+                -- Extrage datele în variabile
+                FETCH c_Excursii INTO v_ExcursieID, v_DestinatieID, v_Nume, v_Descriere, v_Durata, v_Pret;
+
+                EXIT WHEN c_Excursii%NOTFOUND;
+
+                DBMS_OUTPUT.PUT_LINE('Excursie ID: ' || v_ExcursieID);
+                DBMS_OUTPUT.PUT_LINE('Nume: ' || v_Nume);
+                DBMS_OUTPUT.PUT_LINE('Descriere: ' || v_Descriere);
+                DBMS_OUTPUT.PUT_LINE('Durata: ' || v_Durata || ' zile');
+                DBMS_OUTPUT.PUT_LINE('Pret: ' || v_Pret || ' RON');
+                DBMS_OUTPUT.PUT_LINE('-----------------------');
+            END LOOP;
+
+            CLOSE c_Excursii;
+
+        END LOOP;
+
+        CLOSE c_Destinatii;
+
+    EXCEPTION
+        -- Tratarea exceptiilor, daca este necesar
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('A intervenit o eroare: ' || SQLERRM);
+    END AfiseazaExcursii;
+
+END ExcursiiPackage;
+/
+
+set serveroutput on;
+BEGIN
+    ExcursiiPackage.AfiseazaExcursii;
+END;
+/
+
+--ex8
+-- Informatii despre rezervarile efectuate pentru un anumit client, inclusiv numele clientului, destinatiile rezervate si data rezervarilor
+CREATE OR REPLACE FUNCTION InformatiiRezervari(
+    p_client_id IN Clienti.client_id%TYPE
+) RETURN VARCHAR2
+IS
+    v_info VARCHAR2(4000);  
+     
+    ClientNotFound EXCEPTION;
+    InvalidReservationDate EXCEPTION;
+    
+
+BEGIN
+
+    SELECT COUNT(*)
+    INTO v_info
+    FROM Clienti
+    WHERE client_id = p_client_id;
+
+    IF v_info = 0 THEN
+        RAISE ClientNotFound;
+    END IF;
+    
+    SELECT 'Client: ' || c.nume || ' ' || c.prenume ||
+           ', Destinatii Rezervate: ' || LISTAGG(dt.tara || ' - ' || pt.nume, ', ') WITHIN GROUP (ORDER BY r.data_rezervare) ||
+           ', Data Rezervarii: ' || LISTAGG(TO_CHAR(r.data_rezervare, 'DD-MON-YYYY'), ', ') WITHIN GROUP (ORDER BY r.data_rezervare)
+      INTO v_info
+      FROM Clienti c
+           JOIN Rezervari r ON c.client_id = r.client_id
+           JOIN Pachete_Turistice pt ON r.pachet_id = pt.pachet_id
+           JOIN Destinatii dt ON pt.destinatie_id = dt.destinatie_id
+     WHERE c.client_id = p_client_id
+     GROUP BY c.nume, c.prenume;
+
+
+   FOR reservation IN (SELECT r.data_vacanta_inceput FROM Rezervari r WHERE r.client_id = p_client_id) LOOP
+        IF reservation.data_vacanta_inceput < SYSDATE THEN
+            RAISE InvalidReservationDate;
+        END IF;
+    END LOOP;
+
+    
+    RETURN v_info;
+
+EXCEPTION
+    WHEN ClientNotFound THEN
+        RETURN 'Eroare: Clientul specificat nu exista';
+
+    WHEN InvalidReservationDate THEN
+        RETURN 'Eroare: Clientul a facut o rezervare pentru o data invalida';
+
+    WHEN OTHERS THEN
+        RETURN 'Eroare neasteptata: ' || SQLERRM;
+END InformatiiRezervari;
+/
+set serveroutput on;
+DECLARE
+    v_result VARCHAR2(4000);
+BEGIN
+    v_result := InformatiiRezervari(1040);
+    DBMS_OUTPUT.PUT_LINE(v_result);
+
+    v_result := InformatiiRezervari(104);
+    DBMS_OUTPUT.PUT_LINE(v_result); 
+    
+    v_result := InformatiiRezervari(109);
+    DBMS_OUTPUT.PUT_LINE(v_result);
+
+END;
+/
+
+
+--ex9
+-- Suma totala a platilor in intervalul dat
+
+CREATE OR REPLACE PROCEDURE CalculeazaTotalPlati(
+    p_data_inceput IN DATE,
+    p_data_sfarsit IN DATE
+)
+IS
+    v_total_plati NUMBER(10);
+
+    TooManyRowsException EXCEPTION;
+    PRAGMA EXCEPTION_INIT(TooManyRowsException, -20001);
+
+BEGIN
+    -- Calculeaza totalul platilor pentru rezervarile din intervalul de timp specificat
+    SELECT NVL(SUM(NVL(pt.pret, 0)) + NVL(SUM(NVL(pl.suma, 0)), 0), 0)
+    INTO v_total_plati
+    FROM Clienti c
+    JOIN Rezervari r ON c.client_id = r.client_id
+    JOIN Pachete_Turistice pt ON r.pachet_id = pt.pachet_id
+    JOIN Destinatii d ON pt.destinatie_id = d.destinatie_id
+    LEFT JOIN Plati pl ON r.rezervare_id = pl.rezervare_id
+    WHERE r.data_vacanta_inceput BETWEEN p_data_inceput AND p_data_sfarsit;
+
+    IF v_total_plati = 0 THEN
+        RAISE NO_DATA_FOUND;
+    END IF;
+
+    DBMS_OUTPUT.PUT_LINE('Suma totala a platilor in intervalul ' || TO_CHAR(p_data_inceput, 'DD-MON-YYYY') || ' - ' || TO_CHAR(p_data_sfarsit, 'DD-MON-YYYY') || ' este: ' || v_total_plati);
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Nu exista platari in intervalul specificat.');
+
+    WHEN TooManyRowsException THEN
+        DBMS_OUTPUT.PUT_LINE('Eroare: Prea multe inregistrari gasite.');
+
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Eroare neasteptata: ' || SQLERRM);
+END CalculeazaTotalPlati;
+/
+set serveroutput on;
+DECLARE
+    v_data_inceput DATE := TO_DATE('01-JAN-2024', 'DD-MON-YYYY');
+    v_data_sfarsit DATE := TO_DATE('31-JAN-2024', 'DD-MON-YYYY');
+BEGIN
+    CalculeazaTotalPlati(v_data_inceput, v_data_sfarsit);
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Eroare la nivel global: ' || SQLERRM);
+END;
+/
+
+
+
+--ex10
+
+CREATE OR REPLACE TRIGGER trig1
+    BEFORE INSERT OR UPDATE OR DELETE ON Joburi
+BEGIN
+    IF (TO_CHAR(SYSDATE,'D') = 1)
+        OR (TO_CHAR(SYSDATE,'HH24') NOT BETWEEN 10 AND 15)
+    THEN
+    RAISE_APPLICATION_ERROR(-20001,'Tabelul nu poate fi actualizat');
+    END IF;
+END;
+/
+
+DROP TRIGGER trig1;
+
+UPDATE Joburi SET salariu = salariu + 500 WHERE job_id = 23;
+
+select * from Joburi;
+
+--ex11
+
+CREATE OR REPLACE TRIGGER trig2
+    BEFORE UPDATE OF pret ON Pachete_Turistice
+    FOR EACH ROW
+    WHEN (NEW.pret < OLD.pret)
+BEGIN
+    RAISE_APPLICATION_ERROR(-20002,'Pretul nu poate fi micsorat');
+END;
+/
+
+UPDATE Pachete_Turistice SET pret = pret - 100 where pachet_id = 5;
+
+DROP TRIGGER trig2;
+
+
+--ex12
+
+CREATE TABLE Info ( 
+    data_base VARCHAR2(40),
+    utilizator VARCHAR2(40),
+    modificare VARCHAR2(40),
+    data_modificare DATE);
+
+CREATE OR REPLACE TRIGGER trig3
+    AFTER CREATE OR DROP OR ALTER ON SCHEMA
+BEGIN
+    INSERT INTO Info VALUES(sys.database_name, sys.login_user, sys.sysevent, sysdate);
+END;
+/
+
+CREATE TABLE aux (n1 VARCHAR(20));
+ALTER TABLE aux ADD (n2 NUMBER(4));
+ALTER TABLE aux DROP(n2);
+DROP TABLE aux;
+
+SELECT * FROM Info;
+
+DROP TRIGGER trig3;
+
+--ex13
+
+CREATE OR REPLACE PACKAGE ProiectPackage AS
+
+  -- Procedura pentru afisarea transporturilor de un tip
+  PROCEDURE TipTransport(
+    p_tip_transport IN Transport.tip_transport%TYPE
+  );
+
+  -- Pachetul pentru gestionarea excursiilor
+  PROCEDURE AfiseazaExcursii;
+
+  -- Functia pentru obtinerea informatiilor despre rezervarile unui client
+  FUNCTION InformatiiRezervari(
+    p_client_id IN Clienti.client_id%TYPE
+  ) RETURN VARCHAR2;
+
+  -- Procedura pentru calcularea sumei totale a platilor intr-un interval de timp
+  PROCEDURE CalculeazaTotalPlati(
+    p_data_inceput IN DATE,
+    p_data_sfarsit IN DATE
+  );
+
+END ProiectPackage;
+/
+
+CREATE OR REPLACE PACKAGE BODY ProiectPackage AS
+
+  -- Implementarea procedurilor si functiilor definite in pachet
+  
+  -- Procedura pentru afisarea transporturilor de un anume tip
+  PROCEDURE TipTransport(
+    p_tip_transport IN Transport.tip_transport%TYPE
+  )
+  IS
+    TYPE transport_id_table IS TABLE OF Transport.transport_id%TYPE INDEX BY PLS_INTEGER;
+    t_id transport_id_table;
+
+    TYPE destinatii_table IS TABLE OF Destinatii.tara%TYPE;
+    t_destinatii destinatii_table;
+
+    TYPE numar_orase_varray IS VARRAY(10) OF NUMBER;
+    numar_orase_varray_var numar_orase_varray := numar_orase_varray();
+
+BEGIN
+    SELECT transport_id
+    BULK COLLECT INTO t_id
+    FROM Transport
+    WHERE tip_transport = p_tip_transport;
+
+    FOR i IN t_id.FIRST..t_id.LAST LOOP
+        SELECT DISTINCT d.tara, COUNT(d.oras)
+        BULK COLLECT INTO t_destinatii, numar_orase_varray_var
+        FROM Destinatii d
+        JOIN Transport t ON d.destinatie_id = t.destinatie_id
+        WHERE t.transport_id = t_id(i)
+        GROUP BY d.tara;
+
+        DBMS_OUTPUT.PUT_LINE('Transport ID: ' || t_id(i) || ', Tip transport: ' || p_tip_transport);
+        
+        FOR j IN t_destinatii.FIRST..t_destinatii.LAST LOOP
+            DBMS_OUTPUT.PUT_LINE('Tara: ' || t_destinatii(j) || ', Numar orase: ' || numar_orase_varray_var(j));
+        END LOOP;
+    END LOOP;
+
+END TipTransport;
+
+  -- Procedura pentru afisarea excursiilor
+  PROCEDURE AfiseazaExcursii
+  IS
+    CURSOR c_Destinatii IS
+      SELECT destinatie_id, tara, oras
+      FROM Destinatii;
+
+    CURSOR c_Excursii(p_DestinatieID_param Excursii.destinatie_id%TYPE) IS
+      SELECT excursie_id, destinatie_id, nume, descriere, durata, pret
+      FROM Excursii
+      WHERE destinatie_id = p_DestinatieID_param;
+
+    v_DestinatieID Destinatii.destinatie_id%TYPE;
+    v_Tara Destinatii.tara%TYPE;
+    v_Oras Destinatii.oras%TYPE;
+
+    v_ExcursieID Excursii.excursie_id%TYPE;
+    v_Nume Excursii.nume%TYPE;
+    v_Descriere Excursii.descriere%TYPE;
+    v_Durata Excursii.durata%TYPE;
+    v_Pret Excursii.pret%TYPE;
+  BEGIN
+    OPEN c_Destinatii;
+
+        LOOP
+            FETCH c_Destinatii INTO v_DestinatieID, v_Tara, v_Oras;
+
+            EXIT WHEN c_Destinatii%NOTFOUND;
+
+            DBMS_OUTPUT.PUT_LINE('Destinatie ID: ' || v_DestinatieID);
+            DBMS_OUTPUT.PUT_LINE('Tara: ' || v_Tara);
+            DBMS_OUTPUT.PUT_LINE('Oras: ' || v_Oras);
+            DBMS_OUTPUT.PUT_LINE('-----------------------');
+            OPEN c_Excursii(v_DestinatieID);
+
+            LOOP
+                FETCH c_Excursii INTO v_ExcursieID, v_DestinatieID, v_Nume, v_Descriere, v_Durata, v_Pret;
+
+                EXIT WHEN c_Excursii%NOTFOUND;
+
+                DBMS_OUTPUT.PUT_LINE('Excursie ID: ' || v_ExcursieID);
+                DBMS_OUTPUT.PUT_LINE('Nume: ' || v_Nume);
+                DBMS_OUTPUT.PUT_LINE('Descriere: ' || v_Descriere);
+                DBMS_OUTPUT.PUT_LINE('Durata: ' || v_Durata || ' zile');
+                DBMS_OUTPUT.PUT_LINE('Pret: ' || v_Pret || ' RON');
+                DBMS_OUTPUT.PUT_LINE('-----------------------');
+            END LOOP;
+            CLOSE c_Excursii;
+        END LOOP;
+        CLOSE c_Destinatii;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('A intervenit o eroare: ' || SQLERRM);
+            
+  END AfiseazaExcursii;
+
+  -- Functia pentru obtinerea informatiilor despre rezervarile unui client
+  FUNCTION InformatiiRezervari(
+    p_client_id IN Clienti.client_id%TYPE
+  ) RETURN VARCHAR2
+  IS
+    v_info VARCHAR2(4000);  
+     
+    ClientNotFound EXCEPTION;
+    InvalidReservationDate EXCEPTION;
+    
+
+BEGIN
+
+    SELECT COUNT(*)
+    INTO v_info
+    FROM Clienti
+    WHERE client_id = p_client_id;
+
+    IF v_info = 0 THEN
+        RAISE ClientNotFound;
+    END IF;
+    
+    SELECT 'Client: ' || c.nume || ' ' || c.prenume ||
+           ', Destinatii Rezervate: ' || LISTAGG(dt.tara || ' - ' || pt.nume, ', ') WITHIN GROUP (ORDER BY r.data_rezervare) ||
+           ', Data Rezervarii: ' || LISTAGG(TO_CHAR(r.data_rezervare, 'DD-MON-YYYY'), ', ') WITHIN GROUP (ORDER BY r.data_rezervare)
+      INTO v_info
+      FROM Clienti c
+           JOIN Rezervari r ON c.client_id = r.client_id
+           JOIN Pachete_Turistice pt ON r.pachet_id = pt.pachet_id
+           JOIN Destinatii dt ON pt.destinatie_id = dt.destinatie_id
+     WHERE c.client_id = p_client_id
+     GROUP BY c.nume, c.prenume;
+
+
+   FOR reservation IN (SELECT r.data_vacanta_inceput FROM Rezervari r WHERE r.client_id = p_client_id) LOOP
+        IF reservation.data_vacanta_inceput < SYSDATE THEN
+            RAISE InvalidReservationDate;
+        END IF;
+    END LOOP;
+
+    
+    RETURN v_info;
+
+EXCEPTION
+    WHEN ClientNotFound THEN
+        RETURN 'Eroare: Clientul specificat nu exista';
+
+    WHEN InvalidReservationDate THEN
+        RETURN 'Eroare: Clientul a facut o rezervare pentru o data invalida';
+
+    WHEN OTHERS THEN
+        RETURN 'Eroare neasteptata: ' || SQLERRM;
+END InformatiiRezervari;
+
+
+  -- Procedura pentru calcularea sumei totale a platilor intr-un interval de timp
+  PROCEDURE CalculeazaTotalPlati(
+    p_data_inceput IN DATE,
+    p_data_sfarsit IN DATE
+  )
+  IS
+    v_total_plati NUMBER(10);
+    TooManyRowsException EXCEPTION;
+    PRAGMA EXCEPTION_INIT(TooManyRowsException, -20001);
+  BEGIN
+    SELECT NVL(SUM(NVL(pt.pret, 0)) + NVL(SUM(NVL(pl.suma, 0)), 0), 0)
+    INTO v_total_plati
+    FROM Clienti c
+    JOIN Rezervari r ON c.client_id = r.client_id
+    JOIN Pachete_Turistice pt ON r.pachet_id = pt.pachet_id
+    JOIN Destinatii d ON pt.destinatie_id = d.destinatie_id
+    LEFT JOIN Plati pl ON r.rezervare_id = pl.rezervare_id
+    WHERE r.data_vacanta_inceput BETWEEN p_data_inceput AND p_data_sfarsit;
+
+    IF v_total_plati = 0 THEN
+        RAISE NO_DATA_FOUND;
+    END IF;
+
+    DBMS_OUTPUT.PUT_LINE('Suma totala a platilor in intervalul ' || TO_CHAR(p_data_inceput, 'DD-MON-YYYY') || ' - ' || TO_CHAR(p_data_sfarsit, 'DD-MON-YYYY') || ' este: ' || v_total_plati);
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Nu exista platari in intervalul specificat.');
+
+    WHEN TooManyRowsException THEN
+        DBMS_OUTPUT.PUT_LINE('Eroare: Prea multe inregistrari gasite.');
+
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Eroare neasteptata: ' || SQLERRM);
+  END CalculeazaTotalPlati;
+
+END ProiectPackage;
+/
